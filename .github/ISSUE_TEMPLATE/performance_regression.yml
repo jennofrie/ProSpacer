@@ -1,0 +1,37 @@
+name: Performance regression
+description: Report a measured ProSpacer frame-time, memory, or loading regression.
+title: "[Performance]: "
+labels: ["performance", "needs-triage"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Regression summary
+    validations:
+      required: true
+  - type: textarea
+    id: comparison
+    attributes:
+      label: Before and after
+      description: Include commits and comparable frame, draw, memory, bundle, or loading measurements.
+    validations:
+      required: true
+  - type: textarea
+    id: scene
+    attributes:
+      label: Reproduction scene
+      description: Seed, system/body, camera, mode, viewport, DPR, quality tier, and warm-up procedure.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Hardware and browser
+      description: CPU, GPU, operating system, browser/version, and renderer string.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Profiling evidence
+      description: Attach tool output, traces, screenshots, or captures.

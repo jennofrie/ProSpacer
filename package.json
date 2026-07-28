@@ -1,0 +1,44 @@
+{
+  "name": "prospacer",
+  "version": "1.0.0",
+  "description": "ProSpacer — an immersive procedural deep-space exploration game powered by WebGL2 and Three.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "check:branding": "node tools/check-branding.mjs",
+    "check": "npm run check:branding && npm run build",
+    "test": "npm run check",
+    "preview": "vite preview --port 4173",
+    "smoke": "node tools/smoke.mjs",
+    "splash": "node tools/splash.mjs --pose --out public/og.png && sips -z 630 1200 --setProperty format jpeg --setProperty formatOptions 88 public/og.png --out public/og.jpg >/dev/null && rm public/og.png",
+    "icons": "node tools/icons.mjs",
+    "deploy": "vite build && npx wrangler deploy"
+  },
+  "keywords": [
+    "webgl2",
+    "three.js",
+    "procedural-generation",
+    "glsl",
+    "space",
+    "game"
+  ],
+  "author": "Profexor",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jennofrie/ProSpacer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jennofrie/ProSpacer/issues"
+  },
+  "homepage": "https://github.com/jennofrie/ProSpacer#readme",
+  "type": "module",
+  "dependencies": {
+    "three": "^0.185.1"
+  },
+  "devDependencies": {
+    "playwright": "^1.62.0",
+    "vite": "^8.1.5"
+  },
+  "private": true
+}

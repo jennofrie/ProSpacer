@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- PROSPACER — a world with a lit limb.
+       Built to survive 16px: one dark disc, one bright crescent, one star. The
+       orbit ring and the ticks are detail for the large sizes and are thin
+       enough to fade out rather than turn to mush when downsampled. -->
+  <defs>
+    <linearGradient id="limb" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0%"   stop-color="#4fb8e8"/>
+      <stop offset="55%"  stop-color="#8fe4ff"/>
+      <stop offset="100%" stop-color="#ffd9a0"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0%"   stop-color="#12304a" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#05090e" stop-opacity="0"/>
+    </radialGradient>
+    <!-- the crescent: the disc minus a copy of itself shifted toward the star -->
+    <mask id="crescent">
+      <rect width="64" height="64" fill="#000"/>
+      <circle cx="33" cy="34" r="18" fill="#fff"/>
+      <circle cx="26.5" cy="30.5" r="17.6" fill="#000"/>
+    </mask>
+  </defs>
+
+  <rect width="64" height="64" rx="14" fill="#05090e"/>
+  <circle cx="33" cy="34" r="27" fill="url(#glow)"/>
+
+  <!-- orbit -->
+  <ellipse cx="33" cy="34" rx="27" ry="10.5" fill="none"
+           stroke="#8fe4ff" stroke-opacity="0.30" stroke-width="1.1"
+           transform="rotate(-24 33 34)"/>
+
+  <!-- the world -->
+  <circle cx="33" cy="34" r="18" fill="#0a1420"/>
+  <circle cx="33" cy="34" r="18" fill="url(#limb)" mask="url(#crescent)"/>
+
+  <!-- a single star, off the shoulder -->
+  <circle cx="13.5" cy="14.5" r="2.1" fill="#ffd9a0"/>
+</svg>

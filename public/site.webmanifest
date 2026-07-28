@@ -1,0 +1,15 @@
+{
+  "name": "ProSpacer",
+  "short_name": "ProSpacer",
+  "description": "Explore a procedurally generated galaxy from the cockpit of the deep survey vessel PALE SEEKER.",
+  "start_url": "/",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#000000",
+  "theme_color": "#05090e",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

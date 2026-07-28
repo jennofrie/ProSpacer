@@ -1,0 +1,11 @@
+# Repository and brand ownership
+* @jennofrie
+
+# Profexor review is specifically required for ownership and brand surfaces.
+*.md @jennofrie
+/LICENSE @jennofrie
+/package.json @jennofrie
+/public/favicon.svg @jennofrie
+/docs/assets/ @jennofrie
+/tools/check-branding.mjs @jennofrie
+/.github/workflows/quality.yml @jennofrie

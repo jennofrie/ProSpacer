@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#05090e" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>ProSpacer | Procedural Deep-Space Exploration</title>
+<meta name="application-name" content="ProSpacer" />
+<meta name="author" content="Profexor" />
+<meta name="copyright" content="Copyright © 2026 Profexor" />
+<meta name="description" content="Explore a procedurally generated galaxy from the cockpit of the deep survey vessel Pale Seeker. Scan worlds, walk your ship, and follow the Resonators." />
+<link rel="canonical" href="https://github.com/jennofrie/ProSpacer" />
+
+<!-- icons -->
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="/favicon-96.png" sizes="96x96" type="image/png" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<link rel="manifest" href="/site.webmanifest" />
+
+<!-- rich embeds. The image is a real frame captured out of the running game
+     (tools/splash.mjs) rather than mocked-up key art. Absolute URLs are
+     required: crawlers do not resolve relative ones. -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="ProSpacer" />
+<meta property="og:title" content="ProSpacer" />
+<meta property="og:description" content="Explore a procedurally generated galaxy from the cockpit of the deep survey vessel Pale Seeker. Scan worlds, walk your ship, and follow the Resonators." />
+<meta property="og:url" content="https://github.com/jennofrie/ProSpacer" />
+<meta property="og:image" content="https://raw.githubusercontent.com/jennofrie/ProSpacer/main/public/og.jpg" />
+<meta property="og:image:type" content="image/jpeg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="The cockpit of a survey ship, instruments lit, looking out through the canopy at a blue world with its terminator in view." />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="ProSpacer" />
+<meta name="twitter:description" content="Explore a procedurally generated galaxy from the cockpit of the deep survey vessel Pale Seeker. Scan worlds, walk your ship, and follow the Resonators." />
+<meta name="twitter:image" content="https://raw.githubusercontent.com/jennofrie/ProSpacer/main/public/og.jpg" />
+<meta name="twitter:image:alt" content="The cockpit of a survey ship, instruments lit, looking out through the canopy at a blue world with its terminator in view." />
+</head>
+<body>
+  <canvas id="scene"></canvas>
+
+  <!-- ====================== BOOT ====================== -->
+  <div id="boot">
+    <div class="boot-inner">
+      <div class="boot-mark">
+        <svg viewBox="0 0 120 120" width="110" height="110">
+          <circle cx="60" cy="60" r="46" class="bm-ring"/>
+          <circle cx="60" cy="60" r="34" class="bm-ring bm-ring2"/>
+          <circle cx="60" cy="60" r="4"  class="bm-dot"/>
+          <path d="M60 4 L60 18 M60 102 L60 116 M4 60 L18 60 M102 60 L116 60" class="bm-tick"/>
+        </svg>
+      </div>
+      <h1 class="boot-title">PROSPACER</h1>
+      <div class="boot-sub">DEEP SURVEY VESSEL &middot; <span class="accent">PALE SEEKER</span></div>
+      <div class="boot-bar"><i id="bootFill"></i></div>
+      <div class="boot-status" id="bootStatus">initialising</div>
+      <button id="bootStart" class="boot-start" hidden>WAKE</button>
+      <div class="boot-legal">requires WebGL2 &middot; headphones recommended</div>
+    </div>
+  </div>
+
+  <!-- ====================== IN-WORLD OVERLAY ====================== -->
+  <!-- Instruments live on the dashboard. This layer is only for things that
+       exist in the crew member's head: what they are looking at, what they
+       were just told, and what they can reach. -->
+  <div id="hud" class="hidden">
+
+    <!-- aiming reticle, pilot only -->
+    <div id="reticle" class="hidden">
+      <svg viewBox="0 0 120 120">
+        <circle cx="60" cy="60" r="21" class="r-ring"/>
+        <path d="M60 30 L60 38 M60 82 L60 90 M30 60 L38 60 M82 60 L90 60" class="r-tick"/>
+        <circle cx="60" cy="60" r="1.4" class="r-dot"/>
+        <path id="rArc" d="" class="r-arc"/>
+      </svg>
+    </div>
+
+    <!-- contact markers projected on the canopy -->
+    <div id="markers"></div>
+
+    <!-- message log -->
+    <div id="log"></div>
+
+    <!-- The prompt sits directly above the subtitle, in one stack anchored
+         where the subtitle used to be anchored alone. Both used to be absolute
+         at fixed percentages, and the subtitle's height depends on how many
+         lines the dialogue runs to - so any fixed percentage for the prompt is
+         a guess, and at 945px tall they measured a 21px overlap. Stacking them
+         makes the prompt track the subtitle's real height instead.
+         .hidden is display:none, so with nothing to interact with the prompt
+         collapses out of the column and the subtitle sits exactly where it did
+         before, at the 4% that was chosen to clear the main display. -->
+    <div id="narrStack">
+      <!-- interaction prompt -->
+      <div id="prompt" class="hidden">
+        <b id="promptKey">E</b><span id="promptLabel"></span><em id="promptHint"></em>
+      </div>
+
+      <!-- narrative subtitle -->
+      <div id="narr"><div id="narrText"></div></div>
+    </div>
+
+    <!-- contextual controls -->
+    <div id="hints"></div>
+
+    <!-- fold banner -->
+    <div id="foldOverlay"><div class="fo-t">FOLD</div><div class="fo-s" id="foldSub"></div></div>
+
+    <!-- damage / alert vignette handled in post; this is the audio-cue text -->
+    <div id="alert" class="hidden"></div>
+  </div>
+
+  <!-- ====================== ARCHIVE ====================== -->
+  <div id="archive" class="panel hidden">
+    <div class="p-head"><h2>ARCHIVE</h2><button class="p-close" data-close="archive">✕</button></div>
+    <div class="p-body archive-body">
+      <div class="archive-nav" id="archiveNav"></div>
+      <div class="archive-main" id="archiveMain"></div>
+    </div>
+  </div>
+
+  <!-- ====================== STAR MAP ====================== -->
+  <div id="starmap" class="panel hidden">
+    <div class="p-head"><h2>STELLAR CARTOGRAPHY</h2><button class="p-close" data-close="starmap">✕</button></div>
+    <div class="p-body map-body">
+      <canvas id="mapCanvas"></canvas>
+      <div class="map-side" id="mapSide"></div>
+    </div>
+  </div>
+
+  <!-- ====================== TOUCH ====================== -->
+  <div id="touchUI" class="hidden">
+    <div id="stickL" class="stick"><i></i></div>
+    <div id="stickR" class="stick"><i></i></div>
+    <div id="touchBtns">
+      <button class="tb" data-act="use">USE</button>
+      <button class="tb" data-act="boost">RUN</button>
+      <button class="tb" data-act="scan">SCAN</button>
+      <button class="tb" data-act="auto">AUTO</button>
+      <button class="tb" data-act="fold">FOLD</button>
+    </div>
+    <div id="touchThr">
+      <button class="tt" data-act="thrUp">+</button>
+      <button class="tt" data-act="thrDn">−</button>
+    </div>
+  </div>
+
+  <div id="perf"></div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

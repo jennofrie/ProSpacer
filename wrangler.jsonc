@@ -1,0 +1,16 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "prospacer",
+  "compatibility_date": "2026-07-25",
+
+  // A pure static-asset Worker: there is no server-side code, so there is no
+  // "main" entry. Vite emits the whole game into dist/, including everything
+  // from public/ (icons, manifest, the embed image).
+  "assets": {
+    "directory": "./dist"
+  },
+
+  "observability": {
+    "enabled": true
+  }
+}

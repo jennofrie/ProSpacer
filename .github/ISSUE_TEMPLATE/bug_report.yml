@@ -1,0 +1,55 @@
+name: Bug report
+description: Report a reproducible ProSpacer defect.
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping Profexor improve ProSpacer. Do not report security vulnerabilities here; use the private security advisory flow.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What happened, and what should have happened?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Include the seed, system/body, mode, camera, and exact inputs.
+      placeholder: |
+        1. Start with seed…
+        2. Travel to…
+        3. Press…
+    validations:
+      required: true
+  - type: input
+    id: commit
+    attributes:
+      label: Version or commit
+      placeholder: main / commit SHA
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, browser version, GPU renderer, viewport, DPR, and quality tier.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Console output, screenshots, captures, FPS, draw calls, or other measurements.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Confirmation
+      options:
+        - label: I searched existing issues.
+          required: true
+        - label: This report does not contain a public security disclosure.
+          required: true

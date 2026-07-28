@@ -1,0 +1,49 @@
+name: Enhancement proposal
+description: Propose a focused ProSpacer improvement.
+title: "[Enhancement]: "
+labels: ["enhancement", "needs-design"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ProSpacer enhancements require an experience goal, technical scope, budget, and verification plan.
+  - type: textarea
+    id: opportunity
+    attributes:
+      label: Player or engineering opportunity
+      description: What improves, and for whom?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed outcome
+      description: Describe behavior and acceptance criteria without prescribing unnecessary implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: fit
+    attributes:
+      label: Expedition-loop fit
+      description: How does this reinforce flight, survey, exploration, investigation, or progression?
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Technical impact
+      description: Systems, saves, determinism, input, accessibility, deployment, dependencies, and content affected.
+    validations:
+      required: true
+  - type: textarea
+    id: budget
+    attributes:
+      label: Performance and size budget
+      description: Expected CPU, GPU, draw, memory, asset, and bundle impact.
+  - type: textarea
+    id: verification
+    attributes:
+      label: Verification plan
+      description: Automated checks, seeds, captures, metrics, and review cases.
+    validations:
+      required: true

@@ -1,0 +1,436 @@
+/* ============================================================
+   PROSPACER — screen-space layer
+
+   The dashboard carries the instruments. This file styles only what a
+   person carries in their head: what they are looking at, what they
+   were told, and what they can reach.
+   ============================================================ */
+:root{
+  --cy:#8fe4ff;
+  --cy-d:#3d7f96;
+  --am:#ffc48a;
+  --rd:#ff6b5e;
+  --gn:#8affc1;
+  --line:rgba(143,228,255,.22);
+  --line-s:rgba(143,228,255,.10);
+  --txt:rgba(214,240,252,.92);
+  /* Was .48. Every secondary label in the archive and the star map is this
+     colour at 8-9px with heavy tracking; at .48 on a near-black panel the
+     whole UI read as placeholder text. */
+  --dim:rgba(168,204,222,.66);
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,"JetBrains Mono","Roboto Mono",Menlo,Consolas,monospace;
+  --safe-t:env(safe-area-inset-top,0px);
+  --safe-b:env(safe-area-inset-bottom,0px);
+  --safe-l:env(safe-area-inset-left,0px);
+  --safe-r:env(safe-area-inset-right,0px);
+}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#000;color:var(--txt);
+  font-family:var(--mono);font-size:13px;line-height:1.35;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  overscroll-behavior:none;touch-action:none;user-select:none;-webkit-user-select:none}
+canvas#scene{position:fixed;inset:0;width:100%;height:100%;display:block;z-index:0}
+.hidden{display:none!important}
+button{font-family:inherit;color:inherit;background:none;border:none;cursor:pointer}
+
+/* ============================ BOOT ============================ */
+#boot{position:fixed;inset:0;z-index:200;display:grid;place-items:center;
+  background:radial-gradient(120% 90% at 50% 42%,rgba(4,9,15,.70) 0%,rgba(2,5,10,.88) 48%,rgba(0,0,0,.96) 100%);
+  backdrop-filter:blur(2px) saturate(.85);-webkit-backdrop-filter:blur(2px) saturate(.85);
+  transition:opacity .9s cubic-bezier(.4,0,.2,1)}
+#boot.out{opacity:0;pointer-events:none}
+.boot-inner{text-align:center;padding:0 24px;max-width:min(560px,92vw);
+  animation:fadeUp 1.2s cubic-bezier(.2,.7,.2,1) both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.boot-mark{margin-bottom:22px;opacity:.9}
+.bm-ring{fill:none;stroke:var(--cy);stroke-width:.7;opacity:.55;
+  transform-origin:60px 60px;animation:spin 24s linear infinite}
+.bm-ring2{stroke:var(--am);opacity:.35;animation:spin 16s linear infinite reverse;stroke-dasharray:6 10}
+.bm-dot{fill:var(--am);filter:drop-shadow(0 0 6px var(--am))}
+.bm-tick{stroke:var(--cy);stroke-width:.7;opacity:.4}
+@keyframes spin{to{transform:rotate(360deg)}}
+.boot-title{margin:0;font-size:clamp(20px,4.4vw,30px);font-weight:400;letter-spacing:.40em;
+  white-space:nowrap;text-indent:.40em;color:#eaf7ff;text-shadow:0 0 26px rgba(143,228,255,.35)}
+.boot-sub{margin-top:12px;font-size:10.5px;letter-spacing:.3em;color:var(--dim);text-indent:.3em}
+.boot-sub .accent{color:var(--am)}
+.boot-bar{margin:30px auto 0;width:min(320px,74vw);height:1px;background:rgba(143,228,255,.14);
+  position:relative;overflow:hidden}
+.boot-bar i{position:absolute;inset:0 100% 0 0;background:linear-gradient(90deg,var(--cy-d),var(--cy));
+  box-shadow:0 0 12px var(--cy);transition:right .45s cubic-bezier(.3,.8,.3,1)}
+.boot-status{margin-top:14px;font-size:10px;letter-spacing:.26em;color:var(--dim);
+  min-height:14px;text-transform:uppercase}
+.boot-start{margin-top:28px;padding:13px 40px;border:1px solid var(--line);background:rgba(143,228,255,.05);
+  font-size:11px;letter-spacing:.34em;text-indent:.34em;color:#dff4ff;transition:.25s}
+.boot-start:hover{background:rgba(143,228,255,.13);border-color:var(--cy);box-shadow:0 0 30px rgba(143,228,255,.22)}
+.boot-start[hidden]{display:none}
+.boot-legal{margin-top:24px;font-size:9px;letter-spacing:.2em;color:rgba(160,196,214,.28)}
+
+/* ============================ OVERLAY ============================ */
+#hud{position:fixed;inset:0;z-index:20;pointer-events:none;opacity:0;transition:opacity 1.4s ease .2s}
+#hud.on{opacity:1}
+
+/* One shape language for the whole layer: a cut corner top-right and
+   bottom-left. It costs nothing and it is the difference between "a div with a
+   background colour" and something that looks machined. */
+#hud{--cut:10px;
+  --slate:polygon(0 0,calc(100% - var(--cut)) 0,100% var(--cut),
+                  100% 100%,var(--cut) 100%,0 calc(100% - var(--cut)))}
+
+/* reticle */
+#reticle{position:absolute;left:50%;top:50%;width:104px;height:104px;transform:translate(-50%,-50%);
+  opacity:.8;animation:retIn .4s ease}
+@keyframes retIn{from{opacity:0;transform:translate(-50%,-50%) scale(1.25)}}
+#reticle svg{width:100%;height:100%}
+.r-ring{fill:none;stroke:rgba(143,228,255,.30);stroke-width:1}
+.r-tick{stroke:rgba(143,228,255,.62);stroke-width:1.3}
+.r-dot{fill:var(--am);filter:drop-shadow(0 0 4px var(--am))}
+.r-arc{fill:none;stroke:var(--am);stroke-width:2.6;filter:drop-shadow(0 0 5px rgba(255,196,138,.75))}
+
+/* canopy-projected contact markers.
+   Corner brackets rather than a ring: brackets read as a targeting system
+   locking on, and they stay legible against a bright planet where a thin
+   dashed circle disappears. */
+#markers{position:absolute;inset:0}
+.mk{position:absolute;left:0;top:0;width:28px;height:28px;margin:-14px 0 0 -14px;
+  will-change:transform;transition:opacity .25s}
+.mk svg{width:100%;height:100%;overflow:visible}
+.mk-br{fill:none;stroke:rgba(143,228,255,.62);stroke-width:1.3;stroke-linecap:square;
+  transform-origin:14px 14px;transform-box:fill-box;
+  animation:mkIn .38s cubic-bezier(.2,.8,.2,1);
+  filter:drop-shadow(0 0 3px rgba(0,0,0,.9))}
+@keyframes mkIn{from{transform:scale(1.7);opacity:0}}
+.mk-dot{fill:rgba(190,235,255,.95);filter:drop-shadow(0 0 3px rgba(0,0,0,.9))}
+.mk-lbl{position:absolute;left:24px;top:0;white-space:nowrap;font-size:8.5px;letter-spacing:.18em;
+  color:rgba(200,232,246,.78);text-shadow:0 1px 4px #000,0 0 10px rgba(0,0,0,.9)}
+.mk-lbl em{font-style:normal;display:block;color:rgba(160,196,214,.62);font-size:7.5px;
+  letter-spacing:.14em;margin-top:3px}
+.mk.anom .mk-br{stroke:var(--am);animation:mkPulse 1.9s ease-in-out infinite}
+@keyframes mkPulse{0%,100%{transform:scale(1);opacity:.95}50%{transform:scale(1.16);opacity:.55}}
+.mk.anom .mk-lbl{color:var(--am)}
+.mk.anom .mk-dot{fill:var(--am)}
+.mk.scanned .mk-br{stroke:rgba(138,255,193,.55)}
+.mk.sel .mk-br{stroke:var(--cy);stroke-width:1.9}
+.mk.sel .mk-lbl{color:#e8f8ff}
+
+/* message log */
+#log{position:absolute;left:calc(26px + var(--safe-l));bottom:calc(88px + var(--safe-b));
+  width:330px;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.lg{position:relative;font-size:9.5px;letter-spacing:.18em;color:var(--dim);
+  padding:5px 14px 5px 13px;max-width:100%;
+  background:linear-gradient(90deg,rgba(8,17,26,.78),rgba(8,17,26,0));
+  clip-path:polygon(0 0,100% 0,100% 100%,7px 100%,0 calc(100% - 7px));
+  opacity:0;transform:translateX(-14px);
+  animation:lgIn .45s cubic-bezier(.2,.8,.2,1) forwards}
+.lg::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--cy-d)}
+.lg.hi{color:var(--am)}
+.lg.hi::before{background:var(--am);box-shadow:0 0 11px rgba(255,196,138,.75)}
+.lg.ok{color:var(--gn)}
+.lg.ok::before{background:var(--gn);box-shadow:0 0 11px rgba(138,255,193,.65)}
+.lg.out{animation:lgOut .8s ease forwards}
+@keyframes lgIn{to{opacity:1;transform:none}}
+@keyframes lgOut{to{opacity:0;transform:translateX(-14px)}}
+
+/* narrative subtitle */
+/* Twice moved, and the second move was into a different obstacle.
+
+   At 46% it crossed the middle of the windscreen and cut the planet in half.
+   Moving it to 19% fixed that — and then the cockpit was reframed so the dash
+   fills the lower half, and 19% landed squarely on the main display, washing a
+   soft band across the one panel the pilot reads numbers off.
+
+   4% clears both: below the display, over the pedestal, which is the darkest
+   and least informative band in the frame. Dialogue should never cross either
+   the thing it is talking about or the thing you are flying with. */
+/* The stack carries the anchoring; the subtitle is just its last child, so it
+   still bottoms out at the 4% the comment above argues for. The prompt rides
+   on top of it and moves with it — see index.html. */
+#narrStack{position:absolute;left:50%;bottom:calc(4% + var(--safe-b));transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:14px;pointer-events:none}
+#narr{width:min(680px,82vw);text-align:center;pointer-events:none}
+#narrText{font-size:13px;line-height:1.9;letter-spacing:.14em;color:rgba(234,247,255,.96);
+  padding:16px 30px;
+  /* A soft elliptical scrim with no hard edge anywhere — a rectangular plate
+     over a starfield reads as a UI panel pasted on the render. */
+  background:radial-gradient(66% 150% at 50% 50%,rgba(3,8,14,.86) 0%,rgba(3,8,14,.40) 42%,transparent 72%);
+  text-shadow:0 1px 3px #000,0 2px 18px rgba(0,0,0,.95),0 0 42px rgba(0,0,0,.9);
+  opacity:0;transform:translateY(6px);transition:opacity .8s,transform .8s}
+#narrText.on{opacity:1;transform:none}
+/* Block, not inline-block: the speaker is a caption above the line, and inline
+   put the name in the middle of the sentence. width:fit-content keeps the rule
+   under the name rather than across the whole subtitle. */
+#narrText .who{display:block;width:fit-content;margin:0 auto 11px;
+  font-size:9px;letter-spacing:.32em;color:var(--am);
+  padding-bottom:6px;border-bottom:1px solid rgba(255,196,138,.28)}
+
+/* interaction prompt */
+/* 16% put this in the middle of the main display; 11.5% cleared the display
+   but landed on the subtitle instead. It is a child of #narrStack now, so it
+   has no anchoring of its own and cannot collide with the line below it. */
+#prompt{display:flex;align-items:center;gap:13px;padding:8px 20px 8px 9px;
+  background:linear-gradient(90deg,rgba(8,17,26,.62),rgba(8,17,26,.18));
+  clip-path:var(--slate);animation:promptIn .26s cubic-bezier(.2,.8,.2,1)}
+/* translateY, not translate(-50%,…): the -50% centring lives on the stack now,
+   and re-applying it here would slide the prompt half its width left as it
+   animates in. */
+@keyframes promptIn{from{opacity:0;transform:translateY(8px)}}
+#prompt b{position:relative;display:grid;place-items:center;min-width:30px;height:30px;padding:0 8px;
+  border:1px solid rgba(143,228,255,.62);
+  background:linear-gradient(180deg,rgba(22,44,60,.92),rgba(8,18,27,.92));
+  font-size:11.5px;font-weight:400;letter-spacing:.08em;color:#eaf8ff;
+  box-shadow:0 0 22px rgba(143,228,255,.22),inset 0 1px 0 rgba(190,235,255,.16)}
+/* a slow ring breathing out of the key: "this is pressable" without a label */
+#prompt b::after{content:'';position:absolute;inset:-4px;border:1px solid rgba(143,228,255,.45);
+  animation:keyPulse 2.3s cubic-bezier(.3,.7,.3,1) infinite}
+@keyframes keyPulse{0%{opacity:.5;transform:scale(1)}70%,100%{opacity:0;transform:scale(1.35)}}
+#prompt span{font-size:12px;letter-spacing:.24em;color:#eef8ff;text-shadow:0 2px 12px #000}
+#prompt em{font-style:normal;font-size:9.5px;letter-spacing:.16em;color:var(--dim)}
+
+/* contextual keys */
+#hints{position:absolute;left:50%;bottom:calc(14px + var(--safe-b));transform:translateX(-50%);
+  display:flex;gap:7px;flex-wrap:wrap;justify-content:center;max-width:92vw}
+/* The label was 46% of a pale blue over a 46%-opaque chip — about a fifth of
+   the contrast it needed against a bright windscreen, so the one line telling
+   a new player which keys exist was the least legible thing on screen. The
+   chip carries the contrast now and the text sits at a readable weight. */
+#hints span{display:inline-flex;align-items:center;gap:7px;padding:4px 11px;
+  background:rgba(6,13,20,.68);border:1px solid rgba(120,170,200,.14);
+  clip-path:polygon(0 0,calc(100% - 5px) 0,100% 5px,100% 100%,5px 100%,0 calc(100% - 5px));
+  font-size:9.5px;letter-spacing:.18em;color:rgba(186,214,230,.78)}
+#hints kbd{font:inherit;font-size:9.5px;letter-spacing:.1em;color:rgba(158,234,255,.96)}
+
+/* fold banner */
+#foldOverlay{position:absolute;inset:0;display:grid;place-items:center;align-content:center;gap:12px;
+  opacity:0;transition:opacity .4s;
+  background:radial-gradient(62% 62% at 50% 50%,transparent 42%,rgba(0,0,0,.42) 100%)}
+#foldOverlay.on{opacity:1}
+#foldOverlay>*{grid-column:1}
+.fo-t{font-size:clamp(22px,4.6vw,38px);letter-spacing:.6em;text-indent:.6em;color:#dff4ff;
+  text-shadow:0 0 50px rgba(143,228,255,.6);margin-top:-26vh}
+.fo-s{font-size:10px;letter-spacing:.3em;color:var(--am);text-align:center;margin-top:-26vh}
+
+#alert{position:absolute;left:50%;top:calc(20% + var(--safe-t));transform:translateX(-50%);
+  font-size:12px;letter-spacing:.3em;color:var(--rd)}
+
+/* ============================ PANELS ============================ */
+/* Opening a panel is a shot in its own right — it lands on camera in the
+   trailer and it is the only transition the flat UI has. So the ground fades
+   in first and the contents rise into it a beat later, with a hairline wiping
+   across the header, instead of the whole thing appearing at once. */
+.panel{position:fixed;inset:0;z-index:60;background:rgba(2,6,11,.88);
+  backdrop-filter:blur(22px) saturate(.7);-webkit-backdrop-filter:blur(22px) saturate(.7);
+  display:flex;flex-direction:column;animation:pIn .34s cubic-bezier(.2,.8,.2,1)}
+@keyframes pIn{from{opacity:0}to{opacity:1}}
+.panel > *{animation:pRise .52s cubic-bezier(.16,1,.3,1) .07s backwards}
+.panel > * + *{animation-delay:.14s}
+@keyframes pRise{from{opacity:0;transform:translateY(16px) scale(.988)}to{opacity:1;transform:none}}
+.panel.closing{animation:pOut .22s ease-in forwards;pointer-events:none}
+.panel.closing > *{animation:none}
+@keyframes pOut{to{opacity:0;transform:scale(.994)}}
+.p-head{display:flex;align-items:center;justify-content:space-between;position:relative;
+  padding:calc(18px + var(--safe-t)) calc(26px + var(--safe-r)) 16px calc(26px + var(--safe-l));
+  border-bottom:1px solid var(--line-s)}
+.p-head::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:1px;
+  background:linear-gradient(90deg,transparent,var(--cy),transparent);
+  animation:pWipe .8s cubic-bezier(.16,1,.3,1) .1s backwards}
+@keyframes pWipe{from{transform:scaleX(0);opacity:1}to{transform:scaleX(1);opacity:.22}}
+.p-head h2{margin:0;font-size:13px;font-weight:400;letter-spacing:.42em;color:#e8f8ff}
+.p-close{font-size:15px;color:var(--dim);padding:6px 10px;transition:.2s}
+.p-close:hover{color:var(--cy)}
+.p-body{flex:1;min-height:0;overflow:hidden}
+
+/* archive */
+.archive-body{display:grid;grid-template-columns:224px 1fr}
+.archive-nav{overflow-y:auto;border-right:1px solid var(--line-s);padding:14px 0 40px}
+.cx-grp{font-size:9.5px;letter-spacing:.26em;color:var(--dim);padding:16px 26px 7px}
+.cx-item{display:block;width:100%;text-align:left;padding:7px 26px;font-size:11.5px;letter-spacing:.13em;
+  color:rgba(198,232,244,.76);border-left:2px solid transparent;transition:.15s}
+.cx-item:hover{color:#dff4ff;background:rgba(143,228,255,.05)}
+.cx-item.on{color:var(--cy);border-left-color:var(--cy);background:rgba(143,228,255,.07)}
+.cx-item.locked{color:rgba(160,196,214,.34);font-style:italic}
+.archive-main{overflow-y:auto;padding:34px clamp(20px,5vw,64px) 70px}
+.cx-title{font-size:24px;letter-spacing:.24em;color:#eafaff;margin:0 0 6px;font-weight:400}
+.cx-sub{font-size:10px;letter-spacing:.26em;color:var(--am);margin-bottom:26px}
+.cx-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:1px;
+  background:var(--line-s);border:1px solid var(--line-s);margin-bottom:28px}
+.cx-stat{background:rgba(4,10,16,.7);padding:12px 14px}
+.cx-stat label{display:block;font-size:9px;letter-spacing:.22em;color:var(--dim);margin-bottom:5px}
+.cx-stat b{font-weight:400;font-size:14.5px;color:#dff4ff}
+.cx-text{font-size:13px;line-height:1.95;letter-spacing:.05em;color:rgba(214,238,248,.92);max-width:62ch}
+.cx-text p{margin:0 0 16px}
+.cx-text .q{border-left:1px solid rgba(255,196,138,.4);padding-left:18px;
+  color:rgba(255,220,190,.85);font-style:italic}
+.cx-empty{color:var(--dim);font-size:11px;letter-spacing:.16em;padding-top:40px}
+
+/* star map */
+.map-body{position:relative;display:grid;grid-template-columns:1fr 280px}
+#mapCanvas{width:100%;height:100%;display:block;touch-action:none}
+.map-side{border-left:1px solid var(--line-s);padding:26px 24px;overflow-y:auto}
+.ms-name{font-size:17px;letter-spacing:.26em;color:#eafaff;margin-bottom:5px}
+.ms-cls{font-size:9px;letter-spacing:.24em;color:var(--am);margin-bottom:22px}
+.ms-row{display:flex;justify-content:space-between;font-size:10px;letter-spacing:.13em;
+  padding:7px 0;border-bottom:1px solid var(--line-s);color:var(--dim)}
+.ms-row b{font-weight:400;color:#dff4ff}
+.ms-go{margin-top:26px;width:100%;padding:13px;border:1px solid var(--line);background:rgba(143,228,255,.06);
+  font-size:10px;letter-spacing:.3em;color:#dff4ff;transition:.2s}
+.ms-go:hover:not(:disabled){background:rgba(143,228,255,.15);border-color:var(--cy);
+  box-shadow:0 0 26px rgba(143,228,255,.2)}
+.ms-go:disabled{opacity:.3;cursor:default}
+.ms-note{margin-top:14px;font-size:9px;letter-spacing:.14em;color:var(--dim);line-height:1.7}
+
+/* ============================ TOUCH ============================ */
+#touchUI{position:fixed;inset:0;z-index:30;pointer-events:none}
+.stick{position:absolute;bottom:calc(28px + var(--safe-b));width:118px;height:118px;border-radius:50%;
+  border:1px solid rgba(143,228,255,.16);background:rgba(6,14,22,.22);pointer-events:auto;
+  backdrop-filter:blur(3px);transition:opacity .3s;opacity:.5}
+.stick.act{opacity:1;border-color:rgba(143,228,255,.4)}
+.stick i{position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;
+  border:1px solid rgba(143,228,255,.45);background:rgba(143,228,255,.10);
+  box-shadow:0 0 16px rgba(143,228,255,.18)}
+#stickL{left:calc(22px + var(--safe-l))}
+#stickR{right:calc(22px + var(--safe-r))}
+#touchBtns{position:absolute;right:calc(18px + var(--safe-r));top:50%;transform:translateY(-50%);
+  display:flex;flex-direction:column;gap:9px;pointer-events:auto}
+.tb{width:58px;height:38px;border:1px solid rgba(143,228,255,.2);background:rgba(6,14,22,.35);
+  font-size:9px;letter-spacing:.12em;color:rgba(190,226,240,.75);border-radius:2px;
+  backdrop-filter:blur(4px);transition:.12s}
+.tb:active,.tb.on{background:rgba(143,228,255,.2);color:#fff;border-color:var(--cy)}
+#touchThr{position:absolute;left:calc(18px + var(--safe-l));top:50%;transform:translateY(-50%);
+  display:flex;flex-direction:column;gap:9px;pointer-events:auto}
+.tt{width:44px;height:44px;border:1px solid rgba(143,228,255,.2);background:rgba(6,14,22,.35);
+  font-size:16px;color:rgba(190,226,240,.75);border-radius:2px;backdrop-filter:blur(4px)}
+.tt:active{background:rgba(143,228,255,.2);color:#fff}
+
+/* ============================ PERF ============================ */
+#perf{position:fixed;left:6px;top:6px;z-index:120;font-size:9px;letter-spacing:.1em;
+  color:rgba(143,228,255,.45);pointer-events:none;white-space:pre;display:none}
+#perf.on{display:block}
+
+/* ============================ RESPONSIVE ============================ */
+@media (max-width:1100px){
+  .archive-body{grid-template-columns:190px 1fr}
+  .map-body{grid-template-columns:1fr 250px}
+  #log{width:260px}
+}
+
+@media (max-width:760px){
+  #log{left:calc(12px + var(--safe-l));width:min(230px,48vw)}
+  .lg{font-size:8px}
+  #reticle{width:80px;height:80px}
+  #narr{bottom:calc(21% + var(--safe-b));width:88vw}
+  #narrText{font-size:11px;line-height:1.75;letter-spacing:.08em}
+  #prompt span{font-size:10.5px;letter-spacing:.18em}
+  #prompt em{display:none}
+  #hints{display:none}
+  .archive-body{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+  .archive-nav{border-right:none;border-bottom:1px solid var(--line-s);
+    display:flex;flex-wrap:nowrap;overflow-x:auto;padding:8px;gap:6px;align-items:center;
+    -webkit-overflow-scrolling:touch}
+  .cx-grp{padding:0 8px;white-space:nowrap;align-self:center}
+  .cx-item{width:auto;white-space:nowrap;border-left:none;border-bottom:2px solid transparent;padding:6px 12px}
+  .cx-item.on{border-left:none;border-bottom-color:var(--cy)}
+  .archive-main{padding:20px 18px 60px}
+  .cx-title{font-size:16px;letter-spacing:.16em}
+  .cx-stats{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}
+  .map-body{grid-template-columns:1fr;grid-template-rows:1fr auto}
+  .map-side{border-left:none;border-top:1px solid var(--line-s);max-height:44vh;padding:14px}
+  .ms-name{font-size:14px}
+  .p-head{padding-top:calc(12px + var(--safe-t))}
+}
+
+/* portrait phone */
+@media (max-width:760px) and (orientation:portrait){
+  #touchBtns{right:calc(8px + var(--safe-r));gap:7px}
+  .tb{width:52px;height:32px;font-size:8.5px}
+  #touchThr{left:calc(8px + var(--safe-l));top:auto;bottom:calc(158px + var(--safe-b));
+    transform:none;flex-direction:row;gap:6px}
+  .tt{width:38px;height:34px;font-size:15px}
+  #log{bottom:calc(200px + var(--safe-b))}
+  #prompt{bottom:calc(24% + var(--safe-b))}
+  #narr{bottom:calc(52% + var(--safe-b));width:min(272px,68vw)}
+  .stick{width:104px;height:104px}
+}
+
+/* landscape phone */
+@media (max-height:520px){
+  #log{left:calc(120px + var(--safe-l));top:calc(12px + var(--safe-t));bottom:auto;
+    width:min(210px,30vw)}
+  .lg{font-size:7.5px;letter-spacing:.08em;padding-left:6px}
+  #prompt{bottom:calc(20% + var(--safe-b))}
+  #narr{bottom:calc(50% + var(--safe-b));width:min(520px,58vw)}
+  #narrText{font-size:10.5px;line-height:1.6}
+  #reticle{width:66px;height:66px}
+  .mk-lbl{font-size:7.5px}
+  .mk-lbl em{display:none}
+  #markers{right:82px;width:calc(100% - 82px);overflow:hidden}
+  .fo-t{margin-top:-16vh;font-size:clamp(20px,4.2vw,30px)}
+  .fo-s{margin-top:-16vh}
+  .stick{width:96px;height:96px;bottom:calc(14px + var(--safe-b))}
+  .stick i{width:38px;height:38px;margin:-19px 0 0 -19px}
+  #stickL{left:calc(14px + var(--safe-l))}
+  #stickR{right:calc(14px + var(--safe-r))}
+  #touchBtns{right:calc(10px + var(--safe-r));top:calc(10px + var(--safe-t));transform:none;gap:5px}
+  .tb{width:56px;height:26px;font-size:8px}
+  #touchThr{left:calc(10px + var(--safe-l));top:auto;bottom:calc(122px + var(--safe-b));
+    transform:none;flex-direction:row;gap:6px}
+  .tt{width:36px;height:32px;font-size:14px}
+  .map-side{max-height:none;padding:10px 14px}
+  .map-body{grid-template-columns:1fr 240px}
+  .ms-row{padding:4px 0;font-size:9px}
+  .ms-go{padding:9px;margin-top:14px}
+  .ms-note{display:none}
+  .archive-nav{max-height:44px;padding:4px 6px}
+  .archive-main{padding:14px 16px 40px}
+  .cx-text{font-size:11px;line-height:1.75}
+  .p-head{padding:calc(8px + var(--safe-t)) 16px 8px 16px}
+}
+
+@media (max-height:400px){
+  #narr{bottom:calc(54% + var(--safe-b))}
+  #log{display:none}
+}
+
+@media (hover:none){ #hints{display:none} }
+
+
+/* ------------------------------------------------------------- cinematic
+   Bars, and a title that arrives a beat after the cut. The delay matters: a
+   card that appears on the same frame as the shot reads as a UI element, and
+   one that fades up half a second later reads as a title. */
+#cine {
+  position: fixed; inset: 0; pointer-events: none; z-index: 60;
+  opacity: 0; transition: opacity .5s ease;
+}
+#cine.on { opacity: 1; }
+#cine .bar {
+  position: absolute; left: 0; right: 0; height: 11.2vh; background: #000;
+  transform: scaleY(0); transition: transform .62s cubic-bezier(.22,.9,.24,1);
+}
+#cine .bar.top { top: 0; transform-origin: top; }
+#cine .bar.bot { bottom: 0; transform-origin: bottom; }
+#cine.on .bar { transform: scaleY(1); }
+#cine .card {
+  position: absolute; left: 6.5vw; bottom: 16vh;
+  opacity: 0; transform: translateY(10px);
+  transition: opacity .8s ease .55s, transform .9s cubic-bezier(.22,.9,.24,1) .55s;
+}
+#cine .card.on { opacity: 1; transform: none; }
+#cine .ttl {
+  font: 300 34px/1.05 var(--ui-font, ui-monospace, monospace);
+  letter-spacing: .22em; text-transform: uppercase; color: #eef4f8;
+  text-shadow: 0 2px 24px rgba(0,0,0,.9);
+}
+#cine .sub {
+  margin-top: 10px; font: 400 12px/1.4 var(--ui-font, ui-monospace, monospace);
+  letter-spacing: .30em; text-transform: uppercase; color: #7f97a6;
+}
+#hud.cine { opacity: 0; transition: opacity .35s ease; }
+
+/* ------------------------------------------------------- desktop-only gate */
+#boot.gate .boot-inner { max-width: 34rem; text-align: center; }
+#boot .boot-gate {
+  margin: 2.2rem 0 1.6rem;
+  font: 300 15px/1.85 var(--ui-font, ui-monospace, monospace);
+  letter-spacing: .06em;
+  color: #9fb2bf;
+}

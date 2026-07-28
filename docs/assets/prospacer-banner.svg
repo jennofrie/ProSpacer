@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="500" viewBox="0 0 1600 500" role="img" aria-labelledby="title desc">
+  <title id="title">ProSpacer</title>
+  <desc id="desc">Procedural deep-space exploration created by Profexor</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#03070d"/>
+      <stop offset=".55" stop-color="#071421"/>
+      <stop offset="1" stop-color="#0a1019"/>
+    </linearGradient>
+    <radialGradient id="planet" cx=".32" cy=".22" r=".82">
+      <stop offset="0" stop-color="#b9f6ff"/>
+      <stop offset=".2" stop-color="#57c9e8"/>
+      <stop offset=".55" stop-color="#1c5e91"/>
+      <stop offset=".82" stop-color="#0c223e"/>
+      <stop offset="1" stop-color="#02050a"/>
+    </radialGradient>
+    <linearGradient id="line" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#79e8ff" stop-opacity="0"/>
+      <stop offset=".5" stop-color="#79e8ff"/>
+      <stop offset="1" stop-color="#f0b36c" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="10" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="soft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="35"/>
+    </filter>
+    <clipPath id="planetClip">
+      <circle cx="1290" cy="245" r="170"/>
+    </clipPath>
+  </defs>
+
+  <rect width="1600" height="500" rx="22" fill="url(#bg)"/>
+  <ellipse cx="1170" cy="220" rx="390" ry="235" fill="#1b82a4" opacity=".1" filter="url(#soft)"/>
+
+  <g fill="#d9f7ff">
+    <circle cx="92" cy="71" r="1.5" opacity=".72"/>
+    <circle cx="167" cy="146" r="1" opacity=".42"/>
+    <circle cx="264" cy="63" r="1.4" opacity=".65"/>
+    <circle cx="365" cy="111" r=".8" opacity=".38"/>
+    <circle cx="471" cy="50" r="1.2" opacity=".58"/>
+    <circle cx="576" cy="124" r="1.7" opacity=".74"/>
+    <circle cx="703" cy="74" r=".9" opacity=".45"/>
+    <circle cx="814" cy="145" r="1.2" opacity=".57"/>
+    <circle cx="927" cy="59" r=".8" opacity=".46"/>
+    <circle cx="1043" cy="115" r="1.6" opacity=".68"/>
+    <circle cx="1141" cy="54" r="1" opacity=".42"/>
+    <circle cx="1457" cy="91" r="1.5" opacity=".72"/>
+    <circle cx="1514" cy="178" r=".8" opacity=".4"/>
+    <circle cx="118" cy="398" r=".9" opacity=".45"/>
+    <circle cx="255" cy="444" r="1.5" opacity=".63"/>
+    <circle cx="431" cy="393" r=".8" opacity=".38"/>
+    <circle cx="586" cy="451" r="1.1" opacity=".52"/>
+    <circle cx="742" cy="398" r="1.4" opacity=".66"/>
+    <circle cx="909" cy="446" r=".8" opacity=".4"/>
+    <circle cx="1077" cy="393" r="1.2" opacity=".57"/>
+    <circle cx="1486" cy="418" r="1.4" opacity=".64"/>
+  </g>
+
+  <g transform="translate(82 78)">
+    <circle cx="55" cy="55" r="43" fill="none" stroke="#79e8ff" stroke-width="1.5" opacity=".58"/>
+    <circle cx="55" cy="55" r="31" fill="none" stroke="#f0b36c" stroke-width="1.2" stroke-dasharray="7 8" opacity=".45"/>
+    <circle cx="55" cy="55" r="4.5" fill="#f0b36c" filter="url(#glow)"/>
+    <path d="M55 0v15M55 95v15M0 55h15M95 55h15" stroke="#79e8ff" stroke-width="1.5" opacity=".7"/>
+  </g>
+
+  <text x="82" y="262" fill="#edfaff" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="86" font-weight="650" letter-spacing="15">PROSPACER</text>
+  <rect x="86" y="287" width="760" height="2" rx="1" fill="url(#line)"/>
+  <text x="87" y="328" fill="#8eafc4" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="17" letter-spacing="5">PROCEDURAL DEEP-SPACE EXPLORATION</text>
+
+  <g transform="translate(87 367)">
+    <rect width="218" height="42" rx="21" fill="#0c1c29" stroke="#315065"/>
+    <text x="109" y="27" text-anchor="middle" fill="#9adff0" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="13" letter-spacing="2">WEBGL2 · THREE.JS</text>
+    <rect x="235" width="230" height="42" rx="21" fill="#171a1d" stroke="#564535"/>
+    <text x="350" y="27" text-anchor="middle" fill="#f0c38e" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="13" letter-spacing="2">CREATED BY PROFEXOR</text>
+  </g>
+
+  <circle cx="1290" cy="245" r="170" fill="url(#planet)"/>
+  <g clip-path="url(#planetClip)" opacity=".38" fill="none" stroke="#b8f5ff">
+    <path d="M1105 190c80-58 150-42 225-4s126 31 176-12" stroke-width="9"/>
+    <path d="M1100 300c65-42 125-30 180 2s133 44 201 5" stroke-width="5"/>
+    <path d="M1180 76c-18 86 9 140 66 185s74 98 42 165" stroke-width="3"/>
+  </g>
+  <ellipse cx="1290" cy="245" rx="240" ry="63" fill="none" stroke="#79e8ff" stroke-width="2" opacity=".56" transform="rotate(-12 1290 245)"/>
+  <path d="M1080 300c94 71 235 89 355 30" fill="none" stroke="#02060b" stroke-width="18" opacity=".55"/>
+  <circle cx="1429" cy="149" r="7" fill="#f0b36c" filter="url(#glow)"/>
+
+  <text x="1515" y="458" text-anchor="end" fill="#60788a" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="12" letter-spacing="2">PROSPACER™ · © 2026 PROFEXOR</text>
+  <rect x=".75" y=".75" width="1598.5" height="498.5" rx="21.25" fill="none" stroke="#284355" stroke-width="1.5"/>
+</svg>
