@@ -34,7 +34,7 @@
   "homepage": "https://github.com/jennofrie/ProSpacer#readme",
   "type": "module",
   "dependencies": {
-    "three": "^0.185.1"
+    "three": "^0.186.1"
   },
   "devDependencies": {
     "playwright": "^1.62.0",
